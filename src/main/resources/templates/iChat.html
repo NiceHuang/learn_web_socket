@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>爱聊广场</title>
+    <link rel="stylesheet" th:href="@{plugins/element-ui/index.css}" />
+    <script th:src="@{script/jquery.min.js}"></script>
+    <script th:src="@{script/vue.min.js}"></script>
+    <script th:src="@{plugins/element-ui/index.js}"></script>
+</head>
+<body>
+
+<div id="main">
+    <el-container>
+        <el-header>
+            <h1 style="text-align: center">爱聊广场</h1>
+        </el-header>
+        <el-row>
+            <el-alert
+                    :title="titleMessage"
+                    close-text="关闭"
+                    :type="messageType" v-show="isShow">
+            </el-alert>
+        </el-row>
+        <el-container>
+            <el-aside width="300px" style="padding-top: 20px">
+                <el-row>
+                    <el-input placeholder="请输入用户名" v-model="username" class="input-with-select" size="medium" v-show="isDisabled">
+                        <el-button slot="append" v-on:click="addToChat">加入聊天</el-button>
+                    </el-input>
+                </el-row>
+                <br />
+                <el-row>
+                    在线用户：
+                    <ul>
+                        <li v-for="item in onlineUser" :key="item">{{item}}</li>
+                    </ul>
+                    离线用户：
+                    <ul>
+                        <ul>
+                            <li v-for="item in offlineUser" :key="item">{{item}}</li>
+                        </ul>
+                    </ul>
+                </el-row>
+            </el-aside>
+            <el-main>
+                <el-card class="box-card">
+                    <div slot="header" class="clearfix">
+                        <el-row>
+                            <el-col :span="4">
+                                <el-button type="text" :disabled="isDisabled" v-on:click="closeChat">退出聊天</el-button>
+                            </el-col>
+                            <el-col :span="12" :offset="8">
+                                <el-input placeholder="请输入聊天内容" v-model="message"
+                                          class="input-with-select" size="medium" v-show="!isDisabled">
+                                    <el-button slot="append" v-on:click="sendMessage">发送</el-button>
+                                </el-input>
+                            </el-col>
+                        </el-row>
+                    </div>
+                    <div v-for="item in messages" :key="item" class="text item">
+                        {{item}}
+                    </div>
+                </el-card>
+            </el-main>
+        </el-container>
+    </el-container>
+</div>
+
+</body>
+<style>
+    .clearfix:before,
+    .clearfix:after {
+        clear: both;
+    }
+    .el-card__header {
+        padding: 7px 20px !important;
+        border-bottom: 1px solid #ebeef5;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+    .text {
+        font-size: 14px;
+    }
+    .item {
+        margin-bottom: 8px;
+    }
+</style>
+<script>
+    var iChatVue = new Vue({
+        el: "#main",
+        data: {
+            username: "",
+            message: "",
+            webSocket: "",
+            messages: ["测试"],
+            titleMessage: "cs",
+            messageType: "success",
+            isShow: false,
+            isDisabled: true,
+            onlineUser: [],
+            offlineUser: []
+        },
+        mounted(){
+
+        },
+        methods: {
+            addToChat(){
+                if ($.isEmptyObject(this.username)) {
+                    this.$message({
+                        message: '请输入您的用户名',
+                        type: 'warning'
+                    });
+                    return;
+                }
+                this.connection(this.username);
+            },
+            connection(userName) {
+                var self = this;
+                var host = window.location.host;
+                if ('WebSocket' in window) {
+                    this.webSocket = new WebSocket("ws://" + host +
+                        "/webSocketServer/" + userName);
+                } else if ('MozWebSocket' in window) {
+                    this.webSocket = new MozWebSocket("ws://" + host +
+                        "/webSocketServer/" + userName);
+                }
+                this.webSocket.onopen = function(evnt) {
+                    self.titleMessage = "连接服务器成功!";
+                    self.isShow = true;
+                    self.messageType = "success";
+                    self.isDisabled = false;
+                };
+                this.webSocket.onmessage = function(evnt) {
+//                    $("#msg").html($("#msg").html() + "<br/>" + evnt.data);
+                    console.log(evnt);
+                    var data = evnt.data;
+                    try {
+                        data = JSON.parse(data);
+                    } catch (error){
+                        self.titleMessage = error;
+                        self.isShow = true;
+                        self.messageType = "error";
+                    }
+                    console.log(data);
+                    self.onlineUser = data.onlineUser;
+                    self.offlineUser = data.offlineUser;
+                    self.messages.push(data.message);
+                };
+                this.webSocket.onerror = function(evnt) {
+                    self.titleMessage = "服务器罢工啦!";
+                    self.isShow = true;
+                    self.messageType = "error";
+                };
+                this.webSocket.onclose = function(evnt) {
+                    self.titleMessage = "与服务器断开了连接!";
+                    self.isShow = true;
+                    self.isDisabled = true;
+                    self.messageType = "success";
+                }
+            },
+            sendMessage() {
+                if (this.webSocket != null) {
+                    if ($.isEmptyObject(this.message)) {
+                        return;
+                    }
+                    this.webSocket.send(this.message);
+                    this.message = "";
+                } else {
+                    this.titleMessage = "未与服务器连接!";
+                    this.isShow = true;
+                    this.messageType = "error";
+                }
+            },
+            closeChat(){
+                this.webSocket.close();
+            }
+        }
+
+    });
+</script>
+</html>

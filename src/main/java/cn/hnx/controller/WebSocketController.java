@@ -5,7 +5,9 @@ import cn.hnx.common.bean.AricResponse;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * Created by viruser on 2018/8/15.
@@ -25,4 +27,5 @@ public class WebSocketController {
         }
         return new AricResponse("welcome," + message.getName() + "!");
     }
+
 }
