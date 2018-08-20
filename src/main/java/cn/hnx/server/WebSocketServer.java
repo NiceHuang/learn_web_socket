@@ -75,11 +75,11 @@ public class WebSocketServer{
 
     private static void broadcast(Object msg) {
         // 广播形式发送消息
-        String meaasge = JSON.toJSONString(msg);
+        String message = JSON.toJSONString(msg);
         for (WebSocketServer client : connections) {
             try {
                 synchronized (client) {
-                    client.session.getBasicRemote().sendText(meaasge);
+                    client.session.getBasicRemote().sendText(message);
                 }
             } catch (Exception e) {
                 connections.remove(client);
@@ -88,7 +88,7 @@ public class WebSocketServer{
                 } catch (IOException e1) {
                     e.printStackTrace();
                 }
-                String message = String.format("* %s %s", client.nickname, "断开连接");
+                message = String.format("* %s %s", client.nickname, "断开连接");
                 broadcast(message);
             }
         }
