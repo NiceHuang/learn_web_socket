@@ -32,12 +32,10 @@ public class FastJsonController {
     }
     @RequestMapping("/chat")
     public String chat(ModelMap modelMap) {
-        modelMap.addAttribute("key", "qq");
         return "/chat";
     }
     @RequestMapping("/iChat")
     public String iChat(ModelMap modelMap) {
-        modelMap.addAttribute("key", "qq");
         return "/iChat";
     }
 }

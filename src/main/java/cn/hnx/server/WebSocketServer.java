@@ -21,8 +21,8 @@ public class WebSocketServer{
 
     private String nickname;
     private Session session;
-    private Set<String> onlineUser = new HashSet<>();
-    private Set<String> offlineUser = new HashSet<>();
+    private static Set<String> onlineUser = new HashSet<>();
+    private static Set<String> offlineUser = new HashSet<>();
     private Map<String, Object> messages = new HashMap<>();
 
 
@@ -59,7 +59,6 @@ public class WebSocketServer{
         String message = String.format("* %s %s", nickname, "退出聊天！");
         messages.put("message", message);
         broadcast(messages);
-        broadcast(message);
     }
 
     @OnMessage
